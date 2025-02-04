@@ -9,20 +9,48 @@ const useConfig = (accessToken?: string) => {
   const [config, setConfig] = useRecoilState(configState);
   const { isAuthenticated } = useAuth();
   const language = navigator.language || 'en-US';
+  const sourceLanguage = 'hr-HR';
 
-  const { data, error, isLoading } = useApi<IChainlitConfig>(
+  const {
+    data: configData,
+    error: configError,
+    isLoading: configLoading
+  } = useApi<IChainlitConfig>(
     !config && isAuthenticated
       ? `/project/settings?language=${language}`
       : null,
     { token: accessToken }
   );
 
-  useEffect(() => {
-    if (!data) return;
-    setConfig(data);
-  }, [data, setConfig]);
+  const {
+    data: sourceData,
+    error: sourceError,
+    isLoading: sourceLoading
+  } = useApi<{ sourceLanguage: string }>(
+    !config && isAuthenticated
+      ? `/project/settings/source?language=${sourceLanguage}`
+      : null,
+    { token: accessToken }
+  );
 
-  return { config, error, isLoading, language };
+  useEffect(() => {
+    if (!configData || !sourceData) return;
+    setConfig({
+      ...configData,
+      translation: {
+        ...configData.translation,
+        sourceLanguage: sourceData.sourceLanguage
+      }
+    });
+  }, [configData, sourceData, setConfig]);
+
+  return {
+    config,
+    error: configError || sourceError,
+    isLoading: configLoading || sourceLoading,
+    language,
+    sourceLanguage
+  };
 };
 
 export { useConfig };

@@ -52,4 +52,5 @@ export interface IChainlitConfig {
   chatProfiles: ChatProfile[];
   starters?: IStarter[];
   translation: object;
+  sourceLanguage: string;
 }
